@@ -92,7 +92,16 @@ void SDLInteraction::pause(int timeout) {
     SDL_RenderPresent(renderer_);
 
     if (timeout > 0) {
-        SDL_Delay(timeout);
+        Uint32 start = SDL_GetTicks();
+        SDL_Event e;
+        while (SDL_GetTicks() - start < static_cast<Uint32>(timeout)) {
+            while (SDL_PollEvent(&e)) {
+                if (e.type == SDL_QUIT) {
+                    return;
+                }
+            }
+            SDL_Delay(10);
+        }
     } else {
         // Wait for any key or mouse click
         SDL_Event e;
