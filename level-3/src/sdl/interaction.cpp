@@ -24,6 +24,21 @@ SDLInteraction::~SDLInteraction() {
 }
 
 void SDLInteraction::init(const RunConfig& config) {
+    if (shared_) {
+        // We already have a shared window and renderer, just load the font!
+        const char* fontPaths[] = {
+            "assets/fonts/arial.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/calibri.ttf",
+            "C:/Windows/Fonts/consola.ttf",
+        };
+        for (const char* path : fontPaths) {
+            font_ = TTF_OpenFont(path, 28);
+            if (font_) break;
+        }
+        return;
+    }
+
     // SDLInteraction shares the same SDL window/renderer as SDLRenderer
     // In practice, we create our own minimal window for input
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -173,15 +188,19 @@ bool SDLInteraction::getPlayerMove(int* row, int* col) {
 }
 
 void SDLInteraction::close() {
-    if (font_) TTF_CloseFont(font_);
-    if (renderer_) SDL_DestroyRenderer(renderer_);
-    if (window_) SDL_DestroyWindow(window_);
-    TTF_Quit();
-    SDL_Quit();
+    if (font_) {
+        TTF_CloseFont(font_);
+        font_ = nullptr;
+    }
+    if (!shared_) {
+        if (renderer_) SDL_DestroyRenderer(renderer_);
+        if (window_) SDL_DestroyWindow(window_);
+        TTF_Quit();
+        SDL_Quit();
+    }
 
     window_ = nullptr;
     renderer_ = nullptr;
-    font_ = nullptr;
 }
 
 void SDLInteraction::renderInputPrompt(const char* prompt) {

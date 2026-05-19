@@ -10,6 +10,11 @@
 #include "../core/logic.h"
 #include "../utils/helper.h"
 
+#ifdef USE_SDL
+#include "../sdl/renderer.h"
+#include "../sdl/interaction.h"
+#endif
+
 /* ---------- Definitions ---------- */
 
 Engine::Engine(const RunConfig* config,
@@ -31,6 +36,17 @@ void Engine::init() {
     if (logger_) logger_->log("Engine initializing . . .");
 
     if (iRenderer_)    iRenderer_->init(*config_);
+
+#ifdef USE_SDL
+    if (config_->gui_flag && !config_->judge_mode) {
+        SDLRenderer* sdlRenderer = dynamic_cast<SDLRenderer*>(iRenderer_);
+        SDLInteraction* sdlInteraction = dynamic_cast<SDLInteraction*>(iInteraction_);
+        if (sdlRenderer && sdlInteraction) {
+            sdlInteraction->setSharedResources(sdlRenderer->getWindow(), sdlRenderer->getRenderer());
+        }
+    }
+#endif
+
     if (iInteraction_) iInteraction_->init(*config_);
 
     if (logger_) logger_->log("Engine initialized!");

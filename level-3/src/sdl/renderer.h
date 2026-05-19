@@ -14,6 +14,9 @@ class SDLRenderer : public I_Renderer {
     SDLRenderer();
     ~SDLRenderer() override;
 
+    SDL_Window* getWindow() const { return window_; }
+    SDL_Renderer* getRenderer() const { return renderer_; }
+
     void init(const RunConfig& config) override;
     void clearScreen() override;
     void showSelectMenu(SelectType selectType, int context = NO_CONTEXT) override;

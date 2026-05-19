@@ -21,6 +21,12 @@ class SDLInteraction : public I_Interaction {
     bool selectGameMode(GameMode* mode) override;
     bool selectBotLevel(BotLevel* levels, int index) override;
     bool getPlayerMove(int* row, int* col) override;
+    void setSharedResources(SDL_Window* window, SDL_Renderer* renderer) {
+        window_ = window;
+        renderer_ = renderer;
+        shared_ = true;
+    }
+
     void close() override;
 
    private:
@@ -28,6 +34,7 @@ class SDLInteraction : public I_Interaction {
     SDL_Renderer* renderer_;
     TTF_Font* font_;
     std::string inputBuffer_;
+    bool shared_{false};
 
     void renderInputPrompt(const char* prompt);
     int waitForNumberInput(int minVal, int maxVal);
