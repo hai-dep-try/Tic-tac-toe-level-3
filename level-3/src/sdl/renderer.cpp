@@ -3,6 +3,7 @@
  */
 
 #include "renderer.h"
+#include "interaction.h"
 
 #include <iostream>
 #include <sstream>
@@ -124,6 +125,7 @@ void SDLRenderer::showSelectMenu(SelectType selectType, int context) {
     }
 
     renderMenu(title.c_str(), subtitle.c_str());
+    SDLInteraction::setMenuInfo(title, subtitle);
     presentAndWait();
 }
 

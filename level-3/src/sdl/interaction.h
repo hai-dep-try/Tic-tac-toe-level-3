@@ -27,9 +27,15 @@ class SDLInteraction : public I_Interaction {
         shared_ = true;
     }
 
+    static void setMenuInfo(const std::string& title, const std::string& subtitle);
+
     void close() override;
 
    private:
+    static SDLInteraction* s_instance;
+    std::string currentTitle_;
+    std::string currentSubtitle_;
+
     SDL_Window* window_;
     SDL_Renderer* renderer_;
     TTF_Font* font_;

@@ -16,8 +16,19 @@ SDL_Color COLOR_CURSOR   = {255, 255, 255, 255};
 
 }  // namespace
 
+SDLInteraction* SDLInteraction::s_instance = nullptr;
+
 SDLInteraction::SDLInteraction()
-    : window_(nullptr), renderer_(nullptr), font_(nullptr) {}
+    : window_(nullptr), renderer_(nullptr), font_(nullptr) {
+    s_instance = this;
+}
+
+void SDLInteraction::setMenuInfo(const std::string& title, const std::string& subtitle) {
+    if (s_instance) {
+        s_instance->currentTitle_ = title;
+        s_instance->currentSubtitle_ = subtitle;
+    }
+}
 
 SDLInteraction::~SDLInteraction() {
     close();
@@ -209,11 +220,41 @@ void SDLInteraction::renderInputPrompt(const char* prompt) {
     SDL_SetRenderDrawColor(renderer_, COLOR_BG.r, COLOR_BG.g, COLOR_BG.b, COLOR_BG.a);
     SDL_RenderClear(renderer_);
 
-    // Render prompt text
+    // Draw the active menu title if set
+    if (!currentTitle_.empty()) {
+        SDL_Surface* titleSurf = TTF_RenderText_Solid(font_, currentTitle_.c_str(), {255, 220, 100, 255}); // COLOR_TITLE
+        if (titleSurf) {
+            SDL_Texture* titleTex = SDL_CreateTextureFromSurface(renderer_, titleSurf);
+            SDL_Rect titleDst = {150, 150, titleSurf->w, titleSurf->h};
+            SDL_RenderCopy(renderer_, titleTex, nullptr, &titleDst);
+            SDL_DestroyTexture(titleTex);
+            SDL_FreeSurface(titleSurf);
+        }
+    }
+
+    // Draw the active menu subtitle/options if set
+    if (!currentSubtitle_.empty()) {
+        std::istringstream iss(currentSubtitle_);
+        std::string line;
+        int currentY = 220;
+        while (std::getline(iss, line, '\n')) {
+            SDL_Surface* subSurf = TTF_RenderText_Solid(font_, line.c_str(), COLOR_TEXT);
+            if (subSurf) {
+                SDL_Texture* subTex = SDL_CreateTextureFromSurface(renderer_, subSurf);
+                SDL_Rect subDst = {150, currentY, subSurf->w, subSurf->h};
+                SDL_RenderCopy(renderer_, subTex, nullptr, &subDst);
+                SDL_DestroyTexture(subTex);
+                SDL_FreeSurface(subSurf);
+            }
+            currentY += 40;
+        }
+    }
+
+    // Render prompt text (drawn lower down to avoid overlapping the menu options)
     SDL_Surface* surface = TTF_RenderText_Solid(font_, prompt, COLOR_TEXT);
     if (surface) {
         SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_, surface);
-        SDL_Rect dst = {50, 300, surface->w, surface->h};
+        SDL_Rect dst = {150, 420, surface->w, surface->h};
         SDL_RenderCopy(renderer_, texture, nullptr, &dst);
         SDL_DestroyTexture(texture);
         SDL_FreeSurface(surface);
@@ -224,7 +265,7 @@ void SDLInteraction::renderInputPrompt(const char* prompt) {
         SDL_Surface* inputSurface = TTF_RenderText_Solid(font_, inputBuffer_.c_str(), COLOR_INPUT);
         if (inputSurface) {
             SDL_Texture* inputTexture = SDL_CreateTextureFromSurface(renderer_, inputSurface);
-            SDL_Rect inputDst = {50, 360, inputSurface->w, inputSurface->h};
+            SDL_Rect inputDst = {150, 480, inputSurface->w, inputSurface->h};
             SDL_RenderCopy(renderer_, inputTexture, nullptr, &inputDst);
             SDL_DestroyTexture(inputTexture);
             SDL_FreeSurface(inputSurface);
@@ -233,8 +274,8 @@ void SDLInteraction::renderInputPrompt(const char* prompt) {
 
     // Draw cursor
     SDL_SetRenderDrawColor(renderer_, COLOR_CURSOR.r, COLOR_CURSOR.g, COLOR_CURSOR.b, COLOR_CURSOR.a);
-    int cursorX = 50 + (int)inputBuffer_.length() * 14;
-    SDL_RenderDrawLine(renderer_, cursorX, 360, cursorX, 390);
+    int cursorX = 150 + (int)inputBuffer_.length() * 14;
+    SDL_RenderDrawLine(renderer_, cursorX, 480, cursorX, 510);
 
     SDL_RenderPresent(renderer_);
 }
