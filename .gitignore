@@ -1,0 +1,12 @@
+# Ignored files
+AGENTS.md
+AGENT.md
+log.md
+log.txt
+test_log.txt
+test_run.log
+output.txt
+build/
+libs/
+.openclaude/
+.opencode/
