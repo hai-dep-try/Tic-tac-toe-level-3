@@ -12,6 +12,7 @@
 #include "../utils/helper.h"
 
 #ifdef USE_SDL
+#include <SDL.h>
 #include "../sdl/renderer.h"
 #include "../sdl/interaction.h"
 #endif
@@ -172,6 +173,14 @@ std::pair<GameResult, GameState> Engine::playGame() {
         return {GameResult{-1, false, 0}, gameState_};
     }
 
+#ifdef USE_SDL
+    if (config_->gui_flag && !config_->judge_mode && gameSetup_.mode == GameMode::EVE) {
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+    }
+#endif
+
     bot::BotFn bot0 = (gameSetup_.mode == GameMode::EVE)
                           ? bot::makeBot(gameSetup_.levels[0], gameSetup_.goal,
                                          config_->parallel_flag, config_->num_threads)
@@ -189,6 +198,14 @@ std::pair<GameResult, GameState> Engine::playGame() {
             bool is_bot = false;
             if (s.winner == 0 && gameSetup_.mode == GameMode::EVE) is_bot = true;
             if (s.winner == 1 && gameSetup_.mode != GameMode::PVP) is_bot = true;
+
+#ifdef USE_SDL
+            if (config_->gui_flag && !config_->judge_mode) {
+                SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+                SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+                SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+            }
+#endif
             return {GameResult{s.winner, is_bot, s.turn}, s};
         }
 
@@ -253,6 +270,13 @@ std::pair<GameResult, GameState> Engine::playGame() {
         return loop(loop, gameState_);
     } catch (const QuitException& e) {
         if (logger_) logger_->log("Game quit by user.", Logger::Level::INFO);
+#ifdef USE_SDL
+        if (config_->gui_flag && !config_->judge_mode) {
+            SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+            SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+            SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+        }
+#endif
         return {GameResult{-1, false, gameState_.turn}, gameState_};
     }
 }
