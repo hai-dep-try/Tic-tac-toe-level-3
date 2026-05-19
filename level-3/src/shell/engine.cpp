@@ -6,6 +6,7 @@
 #include <chrono>
 #include <sstream>
 #include <thread>
+#include <future>
 #include "../core/bot_pure.h"
 #include "../core/logic.h"
 #include "../utils/helper.h"
@@ -201,12 +202,31 @@ std::pair<GameResult, GameState> Engine::playGame() {
             std::string label = "Bot " + std::to_string(s.currentPlayer) + " (LV " +
                                 botToString(static_cast<int>(gameSetup_.levels[s.currentPlayer])) + ") decision";
 
-            m = measureExecutionTime(
-                label,
-                [&]{ return activeBot(s, *rng_); },
-                config_->verbose_flag,
-                [this](const std::string& msg){ logger_->log(msg, Logger::Level::DEBUG); }
-            );
+            // Run the bot computation in a background thread using std::async
+            std::future<Move> botFuture = std::async(std::launch::async, [&]() {
+                return measureExecutionTime(
+                    label,
+                    [&]{ return activeBot(s, *rng_); },
+                    config_->verbose_flag,
+                    [this](const std::string& msg){ logger_->log(msg, Logger::Level::DEBUG); }
+                );
+            });
+
+            // Keep the SDL event queue completely responsive on the main thread
+            while (botFuture.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready) {
+#ifdef USE_SDL
+                if (config_->gui_flag && !config_->judge_mode) {
+                    SDL_Event e;
+                    while (SDL_PollEvent(&e)) {
+                        if (e.type == SDL_QUIT) {
+                            throw QuitException();
+                        }
+                    }
+                }
+#endif
+            }
+
+            m = botFuture.get();
 
             iRenderer_->showMove(m.row, m.col);
             iInteraction_->pause(SLEEP_TIME);
