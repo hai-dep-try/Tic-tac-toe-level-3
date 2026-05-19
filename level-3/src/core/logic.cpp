@@ -161,8 +161,6 @@ std::optional<WinLine> getWinLine(const Board& board, char symbol, int goal, End
                 int curr_dc = dc[d];
 
                 bool match = true;
-                std::vector<pII> cells;
-                cells.reserve(goal);
                 for (int i = 0; i < goal; ++i) {
                     int nr = r + i * curr_dr;
                     int nc = c + i * curr_dc;
@@ -170,7 +168,6 @@ std::optional<WinLine> getWinLine(const Board& board, char symbol, int goal, End
                         match = false;
                         break;
                     }
-                    cells.push_back({nr, nc});
                 }
 
                 if (match) {
@@ -189,6 +186,12 @@ std::optional<WinLine> getWinLine(const Board& board, char symbol, int goal, End
                     if (rule == EndRule::NONE ||
                         (rule == EndRule::OPEN_ONE && openCount >= 1) ||
                         (rule == EndRule::OPEN_TWO && openCount == 2)) {
+                        
+                        std::vector<pII> cells;
+                        cells.reserve(goal);
+                        for (int i = 0; i < goal; ++i) {
+                            cells.push_back({r + i * curr_dr, c + i * curr_dc});
+                        }
                         return WinLine{cells};
                     }
                 }
