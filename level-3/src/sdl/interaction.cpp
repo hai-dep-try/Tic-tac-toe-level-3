@@ -99,6 +99,13 @@ void SDLInteraction::pause(int timeout) {
                 if (e.type == SDL_QUIT) {
                     return;
                 }
+                if (e.type == SDL_WINDOWEVENT) {
+                    if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
+                        e.window.event == SDL_WINDOWEVENT_SHOWN ||
+                        e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                        SDL_RenderPresent(renderer_);
+                    }
+                }
             }
             SDL_Delay(10);
         }
@@ -111,6 +118,13 @@ void SDLInteraction::pause(int timeout) {
                     return;
                 }
                 if (e.type == SDL_QUIT) return;
+                if (e.type == SDL_WINDOWEVENT) {
+                    if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
+                        e.window.event == SDL_WINDOWEVENT_SHOWN ||
+                        e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                        SDL_RenderPresent(renderer_);
+                    }
+                }
             }
             SDL_Delay(10);
         }
@@ -170,6 +184,13 @@ bool SDLInteraction::getPlayerMove(int* row, int* col) {
     while (true) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) return false;
+            if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
+                    e.window.event == SDL_WINDOWEVENT_SHOWN ||
+                    e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                    renderInputPrompt("Enter row and col (e.g. 1 2) or ESC to quit: ");
+                }
+            }
 
             if (e.type == SDL_KEYDOWN) {
                 SDL_Keycode key = e.key.keysym.sym;
@@ -300,6 +321,13 @@ int SDLInteraction::waitForNumberInput(int minVal, int maxVal) {
     while (true) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) return -1;
+            if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
+                    e.window.event == SDL_WINDOWEVENT_SHOWN ||
+                    e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                    renderInputPrompt(prompt.c_str());
+                }
+            }
 
             if (e.type == SDL_KEYDOWN) {
                 SDL_Keycode key = e.key.keysym.sym;
@@ -351,6 +379,13 @@ int SDLInteraction::waitForChoice() {
     while (true) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) return -1;
+            if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
+                    e.window.event == SDL_WINDOWEVENT_SHOWN ||
+                    e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                    renderInputPrompt("Enter choice (1-3) or ESC to quit: ");
+                }
+            }
 
             if (e.type == SDL_KEYDOWN) {
                 SDL_Keycode key = e.key.keysym.sym;
