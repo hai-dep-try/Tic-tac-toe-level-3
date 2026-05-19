@@ -92,24 +92,36 @@ void SDLInteraction::pause(int timeout) {
     SDL_RenderPresent(renderer_);
 
     if (timeout > 0) {
+        // Temporarily ignore mouse clicks and motions to prevent queue flooding during bot turns
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_IGNORE);
+        SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+
         Uint32 start = SDL_GetTicks();
         SDL_Event e;
         while (SDL_GetTicks() - start < static_cast<Uint32>(timeout)) {
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) {
+                    // Restore before returning
+                    SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+                    SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+                    SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
                     return;
-                }
-                if (e.type == SDL_WINDOWEVENT) {
-                    if (e.window.event == SDL_WINDOWEVENT_EXPOSED ||
-                        e.window.event == SDL_WINDOWEVENT_SHOWN ||
-                        e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                        SDL_RenderPresent(renderer_);
-                    }
                 }
             }
             SDL_Delay(10);
         }
+
+        // Restore mouse events after the pause is over
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
     } else {
+        // Wait for any key or mouse click - make sure mouse events are enabled!
+        SDL_EventState(SDL_MOUSEBUTTONDOWN, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEBUTTONUP, SDL_ENABLE);
+        SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+
         // Flush any buffered old mouse/keyboard events before waiting for a new click/keypress
         SDL_Event flushEvent;
         while (SDL_PollEvent(&flushEvent)) {
