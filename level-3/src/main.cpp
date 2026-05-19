@@ -36,10 +36,25 @@
 #include "sdl/renderer.h"
 #endif
 
+#ifdef _WIN32
+#include <windows.h>
+#undef ERROR
+void disableQuickEdit() {
+    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD prev_mode;
+    GetConsoleMode(hInput, &prev_mode);
+    SetConsoleMode(hInput, prev_mode & ~ENABLE_QUICK_EDIT_MODE);
+}
+#endif
+
 /**
  * Mo ta: Entry point.
  */
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
+    disableQuickEdit();
+#endif
+
     // ── 1. Parse config ────────────────────────────────────────────────
     RunConfig config = parseArgs(argc, argv);
 
