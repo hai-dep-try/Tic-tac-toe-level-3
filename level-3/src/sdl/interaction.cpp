@@ -110,6 +110,12 @@ void SDLInteraction::pause(int timeout) {
             SDL_Delay(10);
         }
     } else {
+        // Flush any buffered old mouse/keyboard events before waiting for a new click/keypress
+        SDL_Event flushEvent;
+        while (SDL_PollEvent(&flushEvent)) {
+            if (flushEvent.type == SDL_QUIT) return;
+        }
+
         // Wait for any key or mouse click
         SDL_Event e;
         while (true) {
@@ -176,6 +182,10 @@ bool SDLInteraction::selectBotLevel(BotLevel* levels, int index) {
 
 bool SDLInteraction::getPlayerMove(int* row, int* col) {
     if (!renderer_) return false;
+
+    // Flush any buffered old mouse/keyboard events
+    SDL_Event flushEvent;
+    while (SDL_PollEvent(&flushEvent)) {}
 
     inputBuffer_.clear();
     renderInputPrompt("Enter row and col (e.g. 1 2) or ESC to quit: ");
@@ -313,6 +323,10 @@ void SDLInteraction::renderInputPrompt(const char* prompt) {
 int SDLInteraction::waitForNumberInput(int minVal, int maxVal) {
     if (!renderer_) return -1;
 
+    // Flush any buffered old mouse/keyboard events
+    SDL_Event flushEvent;
+    while (SDL_PollEvent(&flushEvent)) {}
+
     inputBuffer_.clear();
     std::string prompt = "Enter number (" + std::to_string(minVal) + "-" + std::to_string(maxVal) + ") or ESC to quit: ";
     renderInputPrompt(prompt.c_str());
@@ -371,6 +385,10 @@ int SDLInteraction::waitForNumberInput(int minVal, int maxVal) {
 
 int SDLInteraction::waitForChoice() {
     if (!renderer_) return -1;
+
+    // Flush any buffered old mouse/keyboard events
+    SDL_Event flushEvent;
+    while (SDL_PollEvent(&flushEvent)) {}
 
     inputBuffer_.clear();
     renderInputPrompt("Enter choice (1-3) or ESC to quit: ");
